@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>塔羅牌抽牌應用</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .controls {
+            padding: 30px;
+            background: #f8f9fa;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .control-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            align-items: flex-end;
+            margin-bottom: 20px;
+        }
+
+        .control-group {
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .control-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .control-group input[type="number"],
+        .control-group input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ced4da;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .control-group input[type="number"]:focus,
+        .control-group input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding-top: 28px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .checkbox-group label {
+            font-weight: 600;
+            color: #495057;
+            cursor: pointer;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 12px 30px;
+            font-size: 1rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            flex: 1;
+            min-width: 120px;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+
+        .status {
+            padding: 15px 30px;
+            background: #e7f3ff;
+            border-left: 4px solid #667eea;
+            color: #004085;
+            font-weight: 500;
+        }
+
+        .status[aria-live="polite"] {
+            min-height: 50px;
+        }
+
+        .results {
+            padding: 30px;
+            min-height: 200px;
+        }
+
+        .results-header {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .results-header h2 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .seed-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.9rem;
+            color: #6c757d;
+            flex-wrap: wrap;
+        }
+
+        .seed-value {
+            font-family: monospace;
+            background: #f8f9fa;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-weight: bold;
+            color: #495057;
+        }
+
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .card {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.3s;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+            border-color: #667eea;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .card-position {
+            background: #667eea;
+            color: white;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        .card-orientation {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .orientation-upright {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .orientation-reversed {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .card-name {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #495057;
+            margin-bottom: 10px;
+        }
+
+        .card-description {
+            color: #6c757d;
+            line-height: 1.6;
+            font-size: 0.95rem;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+        }
+
+        .empty-state svg {
+            width: 120px;
+            height: 120px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .empty-state h3 {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+
+        .empty-state p {
+            font-size: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 2rem;
+            }
+
+            .control-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .checkbox-group {
+                padding-top: 0;
+            }
+
+            .cards-grid {
+                grid-template-columns: 1fr;
+            }
+
+            button {
+                width: 100%;
+            }
+        }
+
+        /* Accessibility enhancements */
+        button:focus,
+        input:focus {
+            outline: 3px solid #667eea;
+            outline-offset: 2px;
+        }
+
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border-width: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔮 塔羅牌抽牌應用</h1>
+            <p>探索命運的神秘指引 · 支援種子重現 · 完全離線運作</p>
+        </header>
+
+        <div class="controls">
+            <div class="control-row">
+                <div class="control-group">
+                    <label for="cardCount">抽牌張數 (1-10)</label>
+                    <input 
+                        type="number" 
+                        id="cardCount" 
+                        min="1" 
+                        max="10" 
+                        value="3"
+                        aria-label="選擇要抽取的牌數，範圍從 1 到 10">
+                </div>
+
+                <div class="control-group">
+                    <label for="seedInput">種子 (Seed，選填)</label>
+                    <input 
+                        type="text" 
+                        id="seedInput" 
+                        placeholder="留空則自動產生"
+                        aria-label="輸入種子以重現抽牌結果，或留空自動產生">
+                </div>
+
+                <div class="checkbox-group">
+                    <input 
+                        type="checkbox" 
+                        id="allowReversed" 
+                        checked
+                        aria-label="允許逆位牌">
+                    <label for="allowReversed">允許逆位</label>
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button id="drawButton" class="btn-primary" aria-label="抽取塔羅牌">
+                    🎴 抽牌
+                </button>
+                <button id="resetButton" class="btn-secondary" aria-label="重置所有設定">
+                    🔄 重置
+                </button>
+            </div>
+        </div>
+
+        <div class="status" role="status" aria-live="polite" id="statusMessage">
+            準備就緒，請設定參數後點擊「抽牌」按鈕
+        </div>
+
+        <div class="results" id="resultsContainer" aria-live="polite">
+            <div class="empty-state">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="4" y="4" width="16" height="16" rx="2" />
+                    <path d="M12 8v8M8 12h8" />
+                </svg>
+                <h3>尚未抽牌</h3>
+                <p>設定您的參數，然後點擊「抽牌」按鈕開始</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==================== Card Data ====================
+        const MAJOR_ARCANA = [
+            {
+                id: '0_fool',
+                number: 0,
+                name: '愚者',
+                upright: '新的開始、天真無邪、自由精神、冒險、無限可能',
+                reversed: '魯莽、冒失、不負責任、缺乏方向、逃避現實'
+            },
+            {
+                id: '1_magician',
+                number: 1,
+                name: '魔術師',
+                upright: '顯化、力量、技能、專注、行動力、創造',
+                reversed: '操縱、欺騙、未實現的潛力、缺乏技能'
+            },
+            {
+                id: '2_high_priestess',
+                number: 2,
+                name: '女祭司',
+                upright: '直覺、神聖知識、潛意識、內在智慧、靈性',
+                reversed: '秘密、隱藏的動機、缺乏個人和諧、壓抑'
+            },
+            {
+                id: '3_empress',
+                number: 3,
+                name: '皇后',
+                upright: '豐饒、女性力量、美麗、自然、豐盛、養育',
+                reversed: '創造力受阻、依賴他人、窒息、缺乏成長'
+            },
+            {
+                id: '4_emperor',
+                number: 4,
+                name: '皇帝',
+                upright: '權威、結構、控制、父親形象、穩定、領導',
+                reversed: '專制、僵化、缺乏紀律、無能、暴君'
+            },
+            {
+                id: '5_hierophant',
+                number: 5,
+                name: '教皇',
+                upright: '傳統、符合規範、道德、精神指導、制度',
+                reversed: '叛逆、顛覆、新方法、個人信念、挑戰現狀'
+            },
+            {
+                id: '6_lovers',
+                number: 6,
+                name: '戀人',
+                upright: '愛情、和諧、關係、價值觀、選擇、結合',
+                reversed: '失衡、價值觀衝突、不和諧、錯誤的選擇'
+            },
+            {
+                id: '7_chariot',
+                number: 7,
+                name: '戰車',
+                upright: '控制、意志力、勝利、決心、方向、自律',
+                reversed: '缺乏控制、缺乏方向、侵略、失敗'
+            },
+            {
+                id: '8_strength',
+                number: 8,
+                name: '力量',
+                upright: '力量、勇氣、說服力、影響力、同情心、自信',
+                reversed: '自卑、自我懷疑、缺乏自信、軟弱'
+            },
+            {
+                id: '9_hermit',
+                number: 9,
+                name: '隱者',
+                upright: '內省、尋找真理、內在指引、孤獨、智慧',
+                reversed: '孤立、孤獨、退縮、過度謹慎、偏執'
+            },
+            {
+                id: '10_wheel_of_fortune',
+                number: 10,
+                name: '命運之輪',
+                upright: '好運、命運、轉折點、循環、宿命',
+                reversed: '厄運、抗拒改變、失控、壞運氣'
+            },
+            {
+                id: '11_justice',
+                number: 11,
+                name: '正義',
+                upright: '公正、真理、因果報應、法律、公平、誠實',
+                reversed: '不公平、缺乏責任、不誠實、偏見'
+            },
+            {
+                id: '12_hanged_man',
+                number: 12,
+                name: '倒吊人',
+                upright: '暫停、放手、犧牲、新視角、耐心',
+                reversed: '拖延、抗拒、停滯、無謂的犧牲'
+            },
+            {
+                id: '13_death',
+                number: 13,
+                name: '死神',
+                upright: '結束、轉變、過渡、放手、重生',
+                reversed: '抗拒改變、無法放手、停滯、腐朽'
+            },
+            {
+                id: '14_temperance',
+                number: 14,
+                name: '節制',
+                upright: '平衡、節制、耐心、目標、調和、中庸',
+                reversed: '失衡、過度、缺乏長期規劃、不節制'
+            },
+            {
+                id: '15_devil',
+                number: 15,
+                name: '惡魔',
+                upright: '束縛、成癮、物質主義、玩樂、無知',
+                reversed: '釋放、恢復自由、突破束縛、啟蒙'
+            },
+            {
+                id: '16_tower',
+                number: 16,
+                name: '塔',
+                upright: '突然改變、動盪、混亂、啟示、覺醒',
+                reversed: '個人轉變、逃避災難、延遲的危機'
+            },
+            {
+                id: '17_star',
+                number: 17,
+                name: '星星',
+                upright: '希望、信念、目標、樂觀、靈性、療癒',
+                reversed: '絕望、缺乏信念、悲觀、失去希望'
+            },
+            {
+                id: '18_moon',
+                number: 18,
+                name: '月亮',
+                upright: '幻覺、恐懼、焦慮、潛意識、直覺、不確定',
+                reversed: '釋放恐懼、壓抑情緒、內在混亂、困惑'
+            },
+            {
+                id: '19_sun',
+                number: 19,
+                name: '太陽',
+                upright: '快樂、成功、慶祝、樂觀、活力、真實',
+                reversed: '過度樂觀、不切實際、短暫的憂鬱、延遲的成功'
+            },
+            {
+                id: '20_judgement',
+                number: 20,
+                name: '審判',
+                upright: '判斷、重生、內心的呼喚、寬恕、覺醒',
+                reversed: '自我懷疑、內疚、缺乏自我意識、逃避責任'
+            },
+            {
+                id: '21_world',
+                number: 21,
+                name: '世界',
+                upright: '完成、成就、旅行、圓滿、成功、實現',
+                reversed: '未完成、缺乏closure、尋找個人closure、延遲'
+            }
+        ];
+
+        // ==================== PRNG Implementation ====================
+        
+        /**
+         * cyrb53 - Simple string hashing function
+         * Converts any string to a 53-bit hash number
+         */
+        function cyrb53(str, seed = 0) {
+            let h1 = 0xdeadbeef ^ seed;
+            let h2 = 0x41c6ce57 ^ seed;
+            for (let i = 0, ch; i < str.length; i++) {
+                ch = str.charCodeAt(i);
+                h1 = Math.imul(h1 ^ ch, 2654435761);
+                h2 = Math.imul(h2 ^ ch, 1597334677);
+            }
+            h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+            h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+            return 4294967296 * (2097151 & h2) + (h1 >>> 0);
+        }
+
+        /**
+         * Mulberry32 - Deterministic PRNG
+         * Returns a function that generates pseudo-random numbers in range [0, 1)
+         */
+        function mulberry32(seed) {
+            return function() {
+                seed |= 0;
+                seed = seed + 0x6D2B79F5 | 0;
+                let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+                t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+                return ((t ^ t >>> 14) >>> 0) / 4294967296;
+            };
+        }
+
+        /**
+         * Generate a high-entropy random seed using crypto.getRandomValues
+         */
+        function generateRandomSeed() {
+            const array = new Uint32Array(4);
+            window.crypto.getRandomValues(array);
+            return Array.from(array, num => num.toString(36)).join('');
+        }
+
+        /**
+         * Fisher-Yates (Knuth) shuffle algorithm
+         * Shuffles array in place using provided PRNG
+         */
+        function shuffleArray(array, prng) {
+            const shuffled = [...array];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(prng() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
+        }
+
+        // ==================== Card Drawing Logic ====================
+        
+        /**
+         * Draw cards with specified parameters
+         * @param {number} count - Number of cards to draw (1-10)
+         * @param {boolean} allowReversed - Whether to allow reversed cards
+         * @param {string} seed - Seed for reproducibility (optional)
+         * @returns {Object} Reading result with seed and cards
+         */
+        function drawCards(count, allowReversed, seed) {
+            // Validate count
+            count = Math.max(1, Math.min(10, Math.floor(count)));
+            
+            // Generate or use provided seed
+            const usedSeed = seed || generateRandomSeed();
+            
+            // Initialize PRNG with seed
+            const seedHash = cyrb53(usedSeed);
+            const prng = mulberry32(seedHash);
+            
+            // Shuffle deck
+            const shuffledDeck = shuffleArray(MAJOR_ARCANA, prng);
+            
+            // Draw cards
+            const drawnCards = shuffledDeck.slice(0, count);
+            
+            // Determine orientation for each card
+            const result = drawnCards.map((card, index) => {
+                let orientation = 'upright';
+                if (allowReversed) {
+                    // 50% chance for reversed
+                    orientation = prng() < 0.5 ? 'upright' : 'reversed';
+                }
+                
+                return {
+                    position: index + 1,
+                    cardId: card.id,
+                    name: card.name,
+                    orientation: orientation,
+                    description: orientation === 'upright' ? card.upright : card.reversed
+                };
+            });
+            
+            return {
+                seed: usedSeed,
+                cards: result
+            };
+        }
+
+        // ==================== UI Functions ====================
+        
+        /**
+         * Render the reading results
+         */
+        function renderResults(reading) {
+            const container = document.getElementById('resultsContainer');
+            
+            let html = `
+                <div class="results-header">
+                    <h2>抽牌結果</h2>
+                    <div class="seed-info">
+                        <span>種子 (Seed):</span>
+                        <span class="seed-value">${escapeHtml(reading.seed)}</span>
+                        <span>· 張數: ${reading.cards.length}</span>
+                    </div>
+                </div>
+                <div class="cards-grid">
+            `;
+            
+            reading.cards.forEach(card => {
+                const orientationClass = card.orientation === 'upright' ? 'orientation-upright' : 'orientation-reversed';
+                const orientationText = card.orientation === 'upright' ? '正位' : '逆位';
+                
+                html += `
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-position" aria-label="位置 ${card.position}">${card.position}</div>
+                            <div class="card-orientation ${orientationClass}">${orientationText}</div>
+                        </div>
+                        <div class="card-name">${escapeHtml(card.name)}</div>
+                        <div class="card-description">${escapeHtml(card.description)}</div>
+                    </div>
+                `;
+            });
+            
+            html += `</div>`;
+            
+            container.innerHTML = html;
+        }
+
+        /**
+         * Show empty state
+         */
+        function showEmptyState() {
+            const container = document.getElementById('resultsContainer');
+            container.innerHTML = `
+                <div class="empty-state">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="4" y="4" width="16" height="16" rx="2" />
+                        <path d="M12 8v8M8 12h8" />
+                    </svg>
+                    <h3>尚未抽牌</h3>
+                    <p>設定您的參數，然後點擊「抽牌」按鈕開始</p>
+                </div>
+            `;
+        }
+
+        /**
+         * Update status message
+         */
+        function setStatus(message) {
+            document.getElementById('statusMessage').textContent = message;
+        }
+
+        /**
+         * Escape HTML to prevent XSS
+         */
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        /**
+         * Validate card count input
+         */
+        function validateCardCount(value) {
+            const num = parseInt(value, 10);
+            if (isNaN(num) || num < 1) return 1;
+            if (num > 10) return 10;
+            return num;
+        }
+
+        // ==================== Event Handlers ====================
+        
+        /**
+         * Handle draw button click
+         */
+        async function handleDraw() {
+            const drawButton = document.getElementById('drawButton');
+            const cardCountInput = document.getElementById('cardCount');
+            const seedInput = document.getElementById('seedInput');
+            const allowReversedCheckbox = document.getElementById('allowReversed');
+            
+            // Validate and get inputs
+            const count = validateCardCount(cardCountInput.value);
+            cardCountInput.value = count; // Update with validated value
+            
+            const seed = seedInput.value.trim();
+            const allowReversed = allowReversedCheckbox.checked;
+            
+            // Disable button during processing
+            drawButton.disabled = true;
+            setStatus('抽牌中...');
+            
+            try {
+                // Simulate brief processing time for better UX
+                await new Promise(resolve => setTimeout(resolve, 100));
+                
+                // Draw cards
+                const reading = drawCards(count, allowReversed, seed);
+                
+                // Update seed input with used seed if it was auto-generated
+                if (!seed) {
+                    seedInput.value = reading.seed;
+                }
+                
+                // Render results
+                renderResults(reading);
+                
+                // Update status
+                const reversedText = allowReversed ? '允許逆位' : '僅正位';
+                setStatus(`已抽取 ${reading.cards.length} 張牌 (${reversedText}) · 種子: ${reading.seed}`);
+                
+            } catch (error) {
+                console.error('抽牌時發生錯誤:', error);
+                setStatus('發生錯誤，請重試');
+            } finally {
+                // Re-enable button
+                drawButton.disabled = false;
+            }
+        }
+
+        /**
+         * Handle reset button click
+         */
+        function handleReset() {
+            // Reset inputs
+            document.getElementById('cardCount').value = 3;
+            document.getElementById('seedInput').value = '';
+            document.getElementById('allowReversed').checked = true;
+            
+            // Clear results
+            showEmptyState();
+            
+            // Reset status
+            setStatus('準備就緒，請設定參數後點擊「抽牌」按鈕');
+        }
+
+        // ==================== Initialization ====================
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            // Attach event listeners
+            document.getElementById('drawButton').addEventListener('click', handleDraw);
+            document.getElementById('resetButton').addEventListener('click', handleReset);
+            
+            // Allow Enter key to trigger draw
+            document.getElementById('cardCount').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') handleDraw();
+            });
+            
+            document.getElementById('seedInput').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') handleDraw();
+            });
+            
+            // Validate card count on input
+            document.getElementById('cardCount').addEventListener('input', (e) => {
+                const value = validateCardCount(e.target.value);
+                if (value !== parseInt(e.target.value, 10)) {
+                    e.target.value = value;
+                }
+            });
+            
+            console.log('塔羅牌應用已初始化');
+            console.log(`已載入 ${MAJOR_ARCANA.length} 張大阿爾克那牌`);
+        });
+    </script>
+</body>
+</html>
