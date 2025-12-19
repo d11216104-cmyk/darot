@@ -554,7 +554,7 @@
                 number: 21,
                 name: '世界',
                 upright: '完成、成就、旅行、圓滿、成功、實現',
-                reversed: '未完成、缺乏closure、尋找個人closure、延遲'
+                reversed: '未完成、缺乏結束、尋找個人終結、延遲'
             }
         ];
 
@@ -593,11 +593,22 @@
 
         /**
          * Generate a high-entropy random seed using crypto.getRandomValues
+         * Falls back to Math.random() if crypto is not available
          */
         function generateRandomSeed() {
-            const array = new Uint32Array(4);
-            window.crypto.getRandomValues(array);
-            return Array.from(array, num => num.toString(36)).join('');
+            if (window.crypto && window.crypto.getRandomValues) {
+                const array = new Uint32Array(4);
+                window.crypto.getRandomValues(array);
+                return Array.from(array, num => num.toString(36)).join('');
+            } else {
+                // Fallback for older browsers or non-HTTPS contexts
+                console.warn('crypto.getRandomValues not available, using Math.random() (less secure)');
+                const array = new Array(4);
+                for (let i = 0; i < 4; i++) {
+                    array[i] = Math.floor(Math.random() * 0xFFFFFFFF);
+                }
+                return array.map(num => num.toString(36)).join('');
+            }
         }
 
         /**
@@ -769,9 +780,6 @@
             setStatus('抽牌中...');
             
             try {
-                // Simulate brief processing time for better UX
-                await new Promise(resolve => setTimeout(resolve, 100));
-                
                 // Draw cards
                 const reading = drawCards(count, allowReversed, seed);
                 
@@ -830,8 +838,11 @@
             
             // Validate card count on input
             document.getElementById('cardCount').addEventListener('input', (e) => {
-                const value = validateCardCount(e.target.value);
-                if (value !== parseInt(e.target.value, 10)) {
+                const rawValue = e.target.value;
+                const value = validateCardCount(rawValue);
+                // Only update if the validated value is different from the raw input
+                // and the raw input is not empty (to allow user to clear and type)
+                if (rawValue !== '' && value !== parseInt(rawValue, 10)) {
                     e.target.value = value;
                 }
             });
