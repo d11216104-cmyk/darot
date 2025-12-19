@@ -10,7 +10,6 @@ def build_deck():
 def shuffle_deck(deck, seed=None):
     rng = random.Random(seed)
     rng.shuffle(deck)
-    return rng
 
 def card_value(rank):
     if rank == "A":
@@ -49,10 +48,15 @@ def outcome(player, dealer):
 def main():
     print("=== 撲克牌 十點半(10.5) ===")
     seed_text = input("輸入洗牌種子(可空白，留空=隨機)：").strip()
-    seed = int(seed_text) if seed_text else None
+    seed = None
+    if seed_text:
+        try:
+            seed = int(seed_text)
+        except ValueError:
+            print("無效的種子值，使用隨機洗牌")
 
     deck = build_deck()
-    rng = shuffle_deck(deck, seed=seed)
+    shuffle_deck(deck, seed=seed)
 
     player = [draw(deck)]
     dealer = [draw(deck)]
