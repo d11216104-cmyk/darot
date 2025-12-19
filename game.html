@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>撲克牌 十點半(10.5)</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Microsoft YaHei', 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: white;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        .game-area, .start-area {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            margin-bottom: 20px;
+        }
+        .start-area {
+            max-width: 500px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+        .form-group {
+            margin-bottom: 25px;
+        }
+        label {
+            display: block;
+            margin-bottom: 10px;
+            color: #555;
+            font-size: 1.1em;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 12px 20px;
+            font-size: 1em;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            transition: border-color 0.3s;
+        }
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .hand-section {
+            margin-bottom: 30px;
+        }
+        .hand-title {
+            font-size: 1.5em;
+            color: #333;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+        .cards {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .card {
+            background: white;
+            border: 3px solid #333;
+            border-radius: 10px;
+            padding: 15px 20px;
+            font-size: 2em;
+            min-width: 60px;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .card.red {
+            color: #e74c3c;
+        }
+        .card.black {
+            color: #2c3e50;
+        }
+        .hidden-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: 3px solid #764ba2;
+        }
+        .score {
+            font-size: 1.3em;
+            color: #555;
+            font-weight: bold;
+        }
+        .bust {
+            color: #e74c3c;
+        }
+        .actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.2em;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            font-weight: bold;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        button.secondary {
+            background: linear-gradient(135deg, #34e89e 0%, #0f3443 100%);
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .result {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #856404;
+        }
+        .result.win {
+            background: #d4edda;
+            border-color: #28a745;
+            color: #155724;
+        }
+        .result.lose {
+            background: #f8d7da;
+            border-color: #dc3545;
+            color: #721c24;
+        }
+        .result.tie {
+            background: #d1ecf1;
+            border-color: #17a2b8;
+            color: #0c5460;
+        }
+        .info {
+            background: #f0f4ff;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            color: #555;
+            font-size: 0.95em;
+        }
+        hr {
+            margin: 30px 0;
+            border: none;
+            border-top: 2px dashed #ddd;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🃏 十點半 (10.5)</h1>
+        
+        <!-- Start Screen -->
+        <div id="start-screen" class="start-area">
+            <p class="subtitle">撲克牌遊戲 (10.5)</p>
+            <div class="form-group">
+                <label for="seed">輸入洗牌種子（可選）：</label>
+                <input type="text" id="seed" placeholder="留空=隨機洗牌">
+            </div>
+            <button onclick="startGame()">開始遊戲</button>
+            <div class="info">
+                <strong>遊戲規則：</strong><br>
+                • A = 1 點<br>
+                • J, Q, K = 0.5 點<br>
+                • 數字牌 = 面值<br>
+                • 目標：接近 10.5 但不超過
+            </div>
+        </div>
+        
+        <!-- Game Screen -->
+        <div id="game-screen" class="game-area hidden">
+            <!-- Dealer's Hand -->
+            <div class="hand-section">
+                <div class="hand-title">🎩 莊家</div>
+                <div class="cards" id="dealer-cards"></div>
+                <div class="score">
+                    點數：<span id="dealer-score">? (暗牌)</span>
+                </div>
+            </div>
+            
+            <hr>
+            
+            <!-- Player's Hand -->
+            <div class="hand-section">
+                <div class="hand-title">👤 玩家</div>
+                <div class="cards" id="player-cards"></div>
+                <div class="score">
+                    點數：<span id="player-score">0</span>
+                </div>
+            </div>
+            
+            <!-- Result -->
+            <div id="result" class="result hidden"></div>
+            
+            <!-- Actions -->
+            <div class="actions">
+                <button id="hit-btn" onclick="hit()">要牌 (Hit)</button>
+                <button id="stand-btn" onclick="stand()" class="secondary">停牌 (Stand)</button>
+                <button id="new-game-btn" onclick="newGame()" class="hidden">開始新遊戲</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Game constants
+        const SUITS = ["♠", "♥", "♦", "♣"];
+        const RANKS = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
+        const LIMIT = 10.5;
+        
+        // Game state
+        let deck = [];
+        let playerHand = [];
+        let dealerHand = [];
+        let gameOver = false;
+        let dealerTurn = false;
+        
+        // Seeded random number generator (simple LCG)
+        class SeededRandom {
+            constructor(seed) {
+                this.seed = seed || Math.floor(Math.random() * 2147483647);
+            }
+            
+            next() {
+                this.seed = (this.seed * 1103515245 + 12345) & 0x7fffffff;
+                return this.seed / 0x7fffffff;
+            }
+        }
+        
+        function buildDeck() {
+            const deck = [];
+            for (const suit of SUITS) {
+                for (const rank of RANKS) {
+                    deck.push({ rank, suit });
+                }
+            }
+            return deck;
+        }
+        
+        function shuffleDeck(deck, seed = null) {
+            const rng = seed !== null ? new SeededRandom(seed) : new SeededRandom();
+            
+            // Fisher-Yates shuffle with seeded random
+            for (let i = deck.length - 1; i > 0; i--) {
+                const j = Math.floor(rng.next() * (i + 1));
+                [deck[i], deck[j]] = [deck[j], deck[i]];
+            }
+        }
+        
+        function cardValue(rank) {
+            if (rank === "A") return 1.0;
+            if (["J", "Q", "K"].includes(rank)) return 0.5;
+            return parseFloat(rank);
+        }
+        
+        function handValue(hand) {
+            return hand.reduce((sum, card) => sum + cardValue(card.rank), 0);
+        }
+        
+        function draw() {
+            return deck.pop();
+        }
+        
+        function startGame() {
+            const seedInput = document.getElementById('seed').value.trim();
+            const seed = seedInput ? parseInt(seedInput) : null;
+            
+            // Initialize deck
+            deck = buildDeck();
+            shuffleDeck(deck, seed);
+            
+            // Deal initial cards
+            playerHand = [draw()];
+            dealerHand = [draw()];
+            
+            // Reset game state
+            gameOver = false;
+            dealerTurn = false;
+            
+            // Show game screen
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('game-screen').classList.remove('hidden');
+            
+            // Update display
+            updateDisplay();
+        }
+        
+        function hit() {
+            if (gameOver) return;
+            
+            playerHand.push(draw());
+            updateDisplay();
+            
+            // Check if player busted
+            if (handValue(playerHand) > LIMIT) {
+                dealerTurn = true;
+                gameOver = true;
+                showResult();
+            }
+        }
+        
+        function stand() {
+            if (gameOver) return;
+            
+            dealerTurn = true;
+            
+            // Dealer's turn: hit if < 8
+            while (handValue(playerHand) <= LIMIT && handValue(dealerHand) < 8) {
+                dealerHand.push(draw());
+            }
+            
+            gameOver = true;
+            updateDisplay();
+            showResult();
+        }
+        
+        function outcome() {
+            const p = handValue(playerHand);
+            const d = handValue(dealerHand);
+            
+            if (p > LIMIT) return { message: "玩家爆了(>10.5)，玩家輸", type: "lose" };
+            if (d > LIMIT) return { message: "莊家爆了(>10.5)，玩家贏", type: "win" };
+            if (p > d) return { message: "玩家點數較大，玩家贏", type: "win" };
+            if (p < d) return { message: "莊家點數較大，玩家輸", type: "lose" };
+            return { message: "平手", type: "tie" };
+        }
+        
+        function showResult() {
+            const result = outcome();
+            const resultDiv = document.getElementById('result');
+            resultDiv.textContent = result.message;
+            resultDiv.className = `result ${result.type}`;
+            resultDiv.classList.remove('hidden');
+            
+            // Hide hit/stand buttons, show new game button
+            document.getElementById('hit-btn').classList.add('hidden');
+            document.getElementById('stand-btn').classList.add('hidden');
+            document.getElementById('new-game-btn').classList.remove('hidden');
+        }
+        
+        function updateDisplay() {
+            // Update player cards
+            const playerCardsDiv = document.getElementById('player-cards');
+            playerCardsDiv.innerHTML = '';
+            playerHand.forEach(card => {
+                const cardDiv = document.createElement('div');
+                cardDiv.className = `card ${['♥', '♦'].includes(card.suit) ? 'red' : 'black'}`;
+                cardDiv.textContent = card.rank + card.suit;
+                playerCardsDiv.appendChild(cardDiv);
+            });
+            
+            // Update player score
+            const playerValue = handValue(playerHand);
+            const playerScoreSpan = document.getElementById('player-score');
+            playerScoreSpan.textContent = playerValue.toFixed(1);
+            if (playerValue > LIMIT) {
+                playerScoreSpan.className = 'bust';
+                playerScoreSpan.textContent += ' (爆了！)';
+            } else {
+                playerScoreSpan.className = '';
+            }
+            
+            // Update dealer cards
+            const dealerCardsDiv = document.getElementById('dealer-cards');
+            dealerCardsDiv.innerHTML = '';
+            dealerHand.forEach((card, index) => {
+                const cardDiv = document.createElement('div');
+                if (index === 0 || dealerTurn || gameOver) {
+                    cardDiv.className = `card ${['♥', '♦'].includes(card.suit) ? 'red' : 'black'}`;
+                    cardDiv.textContent = card.rank + card.suit;
+                } else {
+                    cardDiv.className = 'card hidden-card';
+                    cardDiv.textContent = '🂠';
+                }
+                dealerCardsDiv.appendChild(cardDiv);
+            });
+            
+            // Update dealer score
+            const dealerScoreSpan = document.getElementById('dealer-score');
+            if (dealerTurn || gameOver) {
+                const dealerValue = handValue(dealerHand);
+                dealerScoreSpan.textContent = dealerValue.toFixed(1);
+                if (dealerValue > LIMIT) {
+                    dealerScoreSpan.className = 'bust';
+                    dealerScoreSpan.textContent += ' (爆了！)';
+                } else {
+                    dealerScoreSpan.className = '';
+                }
+            } else {
+                dealerScoreSpan.textContent = '? (暗牌)';
+                dealerScoreSpan.className = '';
+            }
+            
+            // Update button states
+            if (gameOver || handValue(playerHand) > LIMIT) {
+                document.getElementById('hit-btn').disabled = true;
+                document.getElementById('stand-btn').disabled = true;
+            } else {
+                document.getElementById('hit-btn').disabled = false;
+                document.getElementById('stand-btn').disabled = false;
+            }
+        }
+        
+        function newGame() {
+            // Reset to start screen
+            document.getElementById('game-screen').classList.add('hidden');
+            document.getElementById('start-screen').classList.remove('hidden');
+            document.getElementById('result').classList.add('hidden');
+            document.getElementById('hit-btn').classList.remove('hidden');
+            document.getElementById('stand-btn').classList.remove('hidden');
+            document.getElementById('new-game-btn').classList.add('hidden');
+            document.getElementById('seed').value = '';
+        }
+    </script>
+</body>
+</html>

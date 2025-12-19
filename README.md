@@ -17,6 +17,10 @@ pip install -r requirements.txt
 
 ## 使用方式
 
+### 純網頁版本（推薦，無需伺服器）
+
+直接在瀏覽器中開啟 `game.html` 檔案即可遊玩，無需安裝任何套件或啟動伺服器。
+
 ### 命令列版本
 
 ```bash
@@ -26,6 +30,7 @@ python ten_point_five.py
 ### 網頁伺服器版本
 
 ```bash
+pip install -r requirements.txt
 python server.py
 ```
 
