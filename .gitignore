@@ -7,3 +7,10 @@ __pycache__/
 *.egg-info/
 dist/
 build/
+
+# Flask
+instance/
+.env
+.venv
+env/
+venv/
