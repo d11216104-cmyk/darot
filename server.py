@@ -152,4 +152,6 @@ def new_game():
     return redirect(url_for('index'))
 
 if __name__ == '__main__':
+    # WARNING: Debug mode is enabled for development only
+    # In production, set debug=False and use a production WSGI server
     app.run(debug=True, host='0.0.0.0', port=5000)
